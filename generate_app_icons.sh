@@ -1,26 +1,39 @@
 #!/bin/bash
+
 #Must have imagemagick installed
 # use homebrew on osx or whatever package manager on linux
+printf "Splunk App Icon Generator\n"
+
+#check for argument
+if [ $# -eq 0 ]
+then
+   printf "\nusage: generate_app_icons.sh [source image file]\n\n"
+   exit 1
+else
+   logo=$1
+   logo2=$(echo "$logo" | sed -E 's/(.+)\.(.+)/\1_square.\2/g')
+fi
+
+#verify log file to convert exists
+if ! test -f "$logo"; then
+   printf "\nError could not locate source image file.\n"
+   exit 1
+fi
 
 #establish main variables
-app=dhqp
-logo=source_logo.png
-logo2=source_logo_square.png
-
 images=("appIcon_2x.png" "appIcon.png" "appIconAlt_2x.png" "appIconAlt.png" "appLogo.png" "appLogo_2x.png")
 dimensions=("72x72" "36x36" "72x72" "36x36" "160x40" "320x80")
 ratio=(0 0 0 0 1 1)
 
-#Nav to folder
-cd ../dhqp/static/
+#printf "logo=$logo\nlogo2=$logo2\n"
+#exit
 
 #get dimensions from source image
-height=$(magick identify -format '%h' source_logo.png)
-width=$(magick identify -format '%w' source_logo.png)
+height=$(magick identify -format '%h' $logo)
+width=$(magick identify -format '%w' $logo)
 echo $logo is $width x $height \(W x H\)
 
-if [ $height -ge $width ]
-   then
+if $height -ge $width; then
       #echo "$height is greater than $width"
       sq_dim=$height
    else
@@ -37,7 +50,7 @@ extent+=$sq_dim
 
 #create square version of logo
 printf "Generating $logo2 with $extent dimensions!\n"
-convert source_logo.png -background none -gravity center -extent $extent $logo2
+convert $logo -background none -gravity center -extent $extent $logo2
 
 #loop through images and sizes
 for i in "${!images[@]}"; do 
@@ -55,5 +68,3 @@ for i in "${!images[@]}"; do
    convert $baseimage -resize $outputdims $outputname
 
 done
-
-cd -
